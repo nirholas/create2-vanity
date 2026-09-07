@@ -7,6 +7,8 @@ browser, then check it is actually free on every chain before you deploy.**
 [![Tests](https://img.shields.io/badge/tests-43%20passing-brightgreen.svg)](./tests)
 [![No keys](https://img.shields.io/badge/keys-none%20involved-34d399.svg)](#there-is-no-key-here)
 
+**Live:** [create2-vanity.global-gargoyle.workers.dev](https://create2-vanity.global-gargoyle.workers.dev) (create2-vanity on a Cloudflare Workers preview deployment: the whole site, the API and the discovery documents, running the code in this repository)
+
 ```bash
 npx create2-vanity grind --init-code-hash 0x30f9… --prefix beef
 npx create2-vanity available 0xBEEF…
@@ -216,6 +218,7 @@ Full schema at `/openapi.json`; agent card at `/.well-known/agents.json`.
 | [docs/derivation.md](docs/derivation.md) | CREATE2, CREATE, init code, and the constructor-argument trap. |
 | [docs/protocol-attestation.md](docs/protocol-attestation.md) | The EIP-712 format, every verifier check, and the Solidity. |
 | [docs/deploy.md](docs/deploy.md) | Node, Docker, Cloud Run, Cloudflare Workers. |
+| [docs/discoverability.md](docs/discoverability.md) | The documents crawlers, assistants and agent runtimes read, and where to submit the project. |
 | [SECURITY.md](SECURITY.md) | What this promises, and the two things it explicitly does not. |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Running it and the quality bar. |
 
