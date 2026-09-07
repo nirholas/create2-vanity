@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Verify a CREATE2 address derivation</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Re-derive a CREATE2 address from its deployer, salt and init-code hash, and verify a signed EIP-712 grind attestation. The derivation check needs no signature and no trust at all.">
+	<link rel="icon" href="/favicon.svg">
+	<link rel="stylesheet" href="/src/ui/site.css">
+	<link rel="canonical" href="https://create2-vanity.dev/verify.html">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="Verify a CREATE2 address derivation">
+	<meta property="og:description" content="Re-derive a CREATE2 address from its deployer, salt and init-code hash, and verify a signed EIP-712 grind attestation. The derivation check needs no signature and no trust at all.">
+</head>
+<body>
+	<a href="#main-content" class="skip-link">Skip to main content</a>
+	<canvas id="bg" aria-hidden="true"></canvas>
+	<header class="site-nav">
+		<a class="brand" href="/"><span class="brand-mark"></span> create2-vanity</a>
+		<nav>
+			<a href="/">Grinder</a>
+			<a href="/deploy.html">Deploy</a>
+			<a href="/verify.html" aria-current="page">Verify</a>
+			<a href="/docs.html">Docs</a>
+			<a href="https://github.com/nirholas/create2-vanity" rel="noopener">GitHub</a>
+		</nav>
+	</header>
+
+	<main id="main-content">
+		<h1>✦ Verify</h1>
+		<p class="lede">
+			Two checks, both entirely in this tab. The first needs no signature and no trust: given a deployer, a salt and an init-code
+			hash, the address is one keccak away, so a claim about a CREATE2 address is either true or provably false.
+		</p>
+
+		<div class="card">
+			<h2>Re-derive an address</h2>
+			<div class="row2">
+				<div>
+					<label for="deployer">Deployer</label>
+					<input id="deployer" type="text" placeholder="0x…" autocomplete="off" spellcheck="false" />
+				</div>
+				<div>
+					<label for="salt">Salt</label>
+					<input id="salt" type="text" placeholder="0x…" autocomplete="off" spellcheck="false" />
+				</div>
+			</div>
+			<label for="ich">keccak256(initCode)</label>
+			<input id="ich" type="text" placeholder="0x…" autocomplete="off" spellcheck="false" />
+			<label for="expected">Expected address (optional)</label>
+			<input id="expected" type="text" placeholder="0x… to compare against" autocomplete="off" spellcheck="false" />
+			<div class="actions"><button id="derive" class="btn primary" type="button">Derive</button></div>
+			<div id="derive-out" hidden></div>
+			<div id="derive-err" hidden class="error"></div>
+		</div>
+
+		<div class="card">
+			<h2>Verify a grind attestation</h2>
+			<p class="desc">
+				An attestation adds provenance to a derivation: who ground the salt, when, and how many attempts it took. Verification
+				recomputes the address, the pattern and the difficulty, then recovers the signer and checks it against the issuer list at
+				<a href="/.well-known/create2-vanity.json">/.well-known/create2-vanity.json</a>.
+			</p>
+			<textarea id="cert" class="t" rows="9" spellcheck="false" placeholder='{ "protocol": "create2-vanity-attestation/v1", … }'></textarea>
+			<div class="actions">
+				<button id="verify" class="btn primary" type="button">Verify</button>
+				<label class="btn" for="file" style="cursor:pointer">Load a file<input id="file" type="file" accept="application/json,.json" hidden /></label>
+			</div>
+			<div id="err" hidden class="error"></div>
+			<div id="out" hidden></div>
+		</div>
+
+		<div class="section-divider">
+			<h2>Checking it on chain</h2>
+			<div class="card">
+				<p class="desc" style="margin:0 0 .6rem">
+					The attestation is EIP-712 typed data, so a contract recovers the signer with <code>ecrecover</code>. A registry can then
+					require a valid attestation before recording an address as deliberately ground.
+				</p>
+				<pre><code>bytes32 constant TYPE_HASH = keccak256(
+    "Create2Attestation(address account,address deployer,bytes32 salt,bytes32 initCodeHash,"
+    "string prefix,string suffix,bool caseSensitive,uint256 expectedAttempts,"
+    "uint256 attempts,bytes32 nonce,uint256 issuedAt)"
+);
+
+// The derivation needs no signature at all:
+address predicted = address(uint160(uint256(keccak256(
+    abi.encodePacked(bytes1(0xff), deployer, salt, initCodeHash)
+))));
+require(predicted == a.account, "salt does not produce this address");</code></pre>
+			</div>
+		</div>
+	</main>
+
+	<footer class="site-foot">
+		<span>Apache-2.0 · <a href="https://github.com/nirholas/create2-vanity" rel="noopener">source</a> · <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/.well-known/agents.json">agent card</a></span>
+		<span>No private keys are involved anywhere in this tool. A CREATE2 address is a pure function of a deployer, a salt and init code.</span>
+	</footer>
+
+	<script type="module" src="/src/ui/scene.js"></script>
+	<script type="module" src="/src/ui/verify.js"></script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>CREATE2 vanity address grinder: search salts in your browser</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Grind a vanity smart-contract address by searching CREATE2 salts. No private keys are involved: the address is a deterministic function of the deployer, the salt and the init code, so anyone can re-derive it. Works with the Arachnid proxy, CreateX, Safe and Coinbase Smart Wallet factories.">
+	<link rel="icon" href="/favicon.svg">
+	<link rel="stylesheet" href="/src/ui/site.css">
+	<link rel="canonical" href="https://create2-vanity.dev/">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="CREATE2 vanity address grinder: search salts in your browser">
+	<meta property="og:description" content="Grind a vanity smart-contract address by searching CREATE2 salts. No private keys are involved: the address is a deterministic function of the deployer, the salt and the init code, so anyone can re-derive it. Works with the Arachnid proxy, CreateX, Safe and Coinbase Smart Wallet factories.">
+	<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"CREATE2 Vanity Address Grinder","applicationCategory":"DeveloperApplication","operatingSystem":"Any (browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"license":"https://www.apache.org/licenses/LICENSE-2.0","codeRepository":"https://github.com/nirholas/create2-vanity","description":"Search CREATE2 salts in the browser for a deterministic vanity contract address, check it is unclaimed on every EVM chain, and deploy the same address everywhere."}</script>
+</head>
+<body>
+	<a href="#main-content" class="skip-link">Skip to main content</a>
+	<canvas id="bg" aria-hidden="true"></canvas>
+	<header class="site-nav">
+		<a class="brand" href="/"><span class="brand-mark"></span> create2-vanity</a>
+		<nav>
+			<a href="/" aria-current="page">Grinder</a>
+			<a href="/deploy.html">Deploy</a>
+			<a href="/verify.html">Verify</a>
+			<a href="/docs.html">Docs</a>
+			<a href="https://github.com/nirholas/create2-vanity" rel="noopener">GitHub</a>
+		</nav>
+	</header>
+
+	<main id="main-content">
+		<h1>✦ CREATE2 vanity address grinder</h1>
+		<p class="lede">
+			Grind a vanity smart-contract address by searching <strong>CREATE2 salts</strong>. No private keys are involved anywhere:
+			the address is a pure function of your deployer, your init code and the salt, so the result is one keccak away from being
+			re-derived by anyone. <strong>Runs entirely in your browser.</strong>
+		</p>
+
+		<div class="sibling-note">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5l-8-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+			<span>
+				This grinds a vanity <strong>contract</strong> address. Because there is no key, a hostile grinder's worst case is handing
+				you a salt that does not work, which one keccak disproves. Want a vanity <strong>wallet</strong> you hold the key to?
+				That is a different tool with a very different risk model: <a href="https://github.com/nirholas/evm-vanity" rel="noopener">evm-vanity</a>.
+			</span>
+		</div>
+
+		<div class="card">
+			<h2>1. Factory and init code</h2>
+			<p class="desc">CREATE2 fixes the deployer address and the init code; only the salt is yours to choose.</p>
+
+			<div class="formula">address = keccak256(0xff ‖ deployer ‖ salt ‖ keccak256(initCode))[12:]</div>
+
+			<label for="deployer">Deployer / factory address (20 bytes)</label>
+			<input id="deployer" type="text" placeholder="0x…" autocomplete="off" spellcheck="false" />
+			<div class="preset-row" id="deployer-presets" aria-label="Common deployers"></div>
+			<div class="deployer-note" id="deployer-note"></div>
+
+			<label for="initcode-hash">keccak256(initCode), 32 bytes</label>
+			<input id="initcode-hash" type="text" placeholder="0x… (64 hex chars)" autocomplete="off" spellcheck="false" />
+			<p class="desc" style="margin-top:.4rem">
+				Have the raw <code>initCode</code> instead (deploy bytecode with the ABI-encoded constructor arguments appended)? Paste it
+				and it is hashed here. Have a Foundry or Hardhat artifact? Drop the JSON in and the bytecode is read out of it.
+			</p>
+			<label for="initcode-raw" style="margin-top:.5rem">Raw init code (optional, auto-hashes)</label>
+			<textarea id="initcode-raw" rows="3" placeholder="0x… (paste bytecode + ABI-encoded args)"></textarea>
+			<div class="actions" style="margin-top:.55rem">
+				<label class="btn" for="artifact" style="cursor:pointer">Load a compiler artifact<input id="artifact" type="file" accept="application/json,.json" hidden /></label>
+				<span id="artifact-note" style="font-size:.78rem;color:var(--muted)"></span>
+			</div>
+			<div id="ctor-host"></div>
+		</div>
+
+		<div class="card">
+			<h2>2. Pattern</h2>
+			<p class="desc">
+				Hex characters only (0-9, a-f). Each extra character is 16x harder.
+				<strong>Mixed case</strong> (e.g. <code>Beef</code>) matches the EIP-55 checksum: distinctive, and 2x harder per letter.
+			</p>
+
+			<div class="row2">
+				<div>
+					<label for="prefix">Prefix (after 0x)</label>
+					<input id="prefix" type="text" maxlength="10" placeholder="e.g. beef or Beef" autocomplete="off" spellcheck="false" />
+				</div>
+				<div>
+					<label for="suffix">Suffix</label>
+					<input id="suffix" type="text" maxlength="10" placeholder="e.g. dead" autocomplete="off" spellcheck="false" />
+				</div>
+			</div>
+
+			<div class="preset-row" id="word-chips" aria-label="Quick-pick patterns" style="margin-top:.6rem"></div>
+
+			<div class="preview" id="preview" aria-live="polite"></div>
+
+			<div class="meter" aria-hidden="true">
+				<div class="seg" data-seg="1"></div><div class="seg" data-seg="2"></div>
+				<div class="seg" data-seg="3"></div><div class="seg" data-seg="4"></div>
+				<div class="seg" data-seg="5"></div><div class="seg" data-seg="6"></div>
+			</div>
+
+			<div class="row">
+				<span id="est">type a pattern to see estimated time</span>
+				<span><span id="case-tag"></span> <span id="tier"></span></span>
+			</div>
+
+			<div class="cores">
+				<div class="cores-head">
+					<label for="core-count">Compute: CPU cores to use</label>
+					<span class="cores-val"><b id="core-count-val">4</b> / <span id="core-max">8</span></span>
+				</div>
+				<div class="cores-row">
+					<input id="core-count" type="range" min="1" max="8" value="4" step="1" aria-label="Number of CPU cores to use for grinding" />
+				</div>
+				<div class="cores-ticks" id="core-ticks" aria-label="Quick core presets"></div>
+				<div class="cores-hint" id="cores-hint">More cores = faster, but a heavier load on your machine. Pause anytime to free them.</div>
+			</div>
+
+			<div class="actions">
+				<button id="grind" class="btn primary" type="button" disabled>Grind salt</button>
+				<button id="pause" class="btn" type="button" hidden>Pause</button>
+				<button id="cancel" class="btn" type="button" hidden>Stop</button>
+			</div>
+
+			<div id="progress" hidden class="progress">
+				<div class="live">
+					<div>
+						<div class="stat" id="rate">0/s</div>
+						<div style="font-size:.75rem;color:#555">tries/sec across <span id="cores2">?</span> cores<span id="paused-tag" class="paused-tag" hidden>paused</span></div>
+					</div>
+					<div style="text-align:right">
+						<div class="stat"><span id="attempts">0</span></div>
+						<div style="font-size:.75rem;color:#555">attempts · eta <span id="eta">…</span></div>
+					</div>
+				</div>
+				<div class="scan" id="scan"></div>
+			</div>
+
+			<div id="error" hidden class="error"></div>
+			<div id="result" hidden></div>
+		</div>
+
+		<div class="section-divider">
+			<h2>The same address, on every chain</h2>
+			<div class="card">
+				<p class="lede" style="font-size:.86rem;margin:0 0 .7rem">
+					Same deployer, same init code, same salt gives the same address on every chain where that deployer exists. All four common
+					deterministic factories are live on Ethereum, Base, Arbitrum, Robinhood Chain, OP, Polygon, BNB and Avalanche, each row
+					confirmed by <code>eth_getCode</code>.
+				</p>
+				<p class="lede" style="font-size:.86rem;margin:0">
+					The <a href="/deploy.html">deploy page</a> checks the predicted address is still unclaimed on all of them before you send
+					anything, which is the failure mode nobody warns you about: somebody else's deployment can already occupy your address on
+					one chain while it is free on the rest.
+				</p>
+			</div>
+		</div>
+	</main>
+
+	<footer class="site-foot">
+		<span>Apache-2.0 · <a href="https://github.com/nirholas/create2-vanity" rel="noopener">source</a> · <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/.well-known/agents.json">agent card</a></span>
+		<span>No private keys are involved anywhere in this tool. A CREATE2 address is a pure function of a deployer, a salt and init code.</span>
+	</footer>
+
+	<script type="module" src="/src/ui/scene.js"></script>
+	<script type="module" src="/src/ui/app.js"></script>
+</body>
+</html>

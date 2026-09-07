@@ -1,0 +1,54 @@
+{
+  "name": "create2-vanity",
+  "version": "1.0.0",
+  "description": "Open-source CREATE2 vanity address grinder: search salts in your browser for a deterministic contract address, check it is free on every EVM chain, deploy the same address on Ethereum, Base, Arbitrum and Robinhood Chain, and verify the derivation on chain. No private keys involved.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "nirholas <support@three.ws>",
+  "homepage": "https://github.com/nirholas/create2-vanity",
+  "repository": { "type": "git", "url": "git+https://github.com/nirholas/create2-vanity.git" },
+  "bugs": { "url": "https://github.com/nirholas/create2-vanity/issues" },
+  "keywords": [
+    "create2", "eip1014", "vanity", "vanity-address", "contract-address", "deterministic-deployment",
+    "salt", "keccak", "eip55", "eip712", "foundry", "hardhat", "ethereum", "evm", "base", "arbitrum",
+    "robinhood-chain", "mcp", "agent", "web3"
+  ],
+  "bin": { "create2-vanity": "cli/create2-vanity.js" },
+  "exports": {
+    ".": "./src/index.js",
+    "./create2": "./src/create2.js",
+    "./address": "./src/address.js",
+    "./attestation": "./src/attestation.js",
+    "./chains": "./src/chains.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["src", "cli", "mcp", "server", "docs", "README.md", "LICENSE", "NOTICE"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "concurrently -n web,api -c green,cyan \"vite\" \"node --watch server/index.mjs\"",
+    "dev:web": "vite",
+    "dev:api": "node --watch server/index.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node server/index.mjs",
+    "test": "node --test tests/*.test.js",
+    "mcp": "node mcp/index.js",
+    "keygen": "node server/keygen.mjs",
+    "deploy:cf": "npm run build && npx wrangler deploy",
+    "deploy:pages": "npm run build && npx wrangler pages deploy dist --project-name create2-vanity"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@noble/curves": "^2.2.0",
+    "@noble/hashes": "^1.8.0",
+    "ethers": "^6.13.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "three": "^0.184.0",
+    "vite": "^7.3.0",
+    "wrangler": "^4.40.0"
+  },
+  "publishConfig": { "access": "public" }
+}

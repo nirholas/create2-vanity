@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Deploy a CREATE2 address on every chain, after checking it is free</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Check that a predicted CREATE2 address is still unclaimed on Ethereum, Base, Arbitrum, Robinhood Chain and every other EVM chain, then deploy the same address on each of them from your own wallet.">
+	<link rel="icon" href="/favicon.svg">
+	<link rel="stylesheet" href="/src/ui/site.css">
+	<link rel="canonical" href="https://create2-vanity.dev/deploy.html">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="Deploy a CREATE2 address on every chain, after checking it is free">
+	<meta property="og:description" content="Check that a predicted CREATE2 address is still unclaimed on Ethereum, Base, Arbitrum, Robinhood Chain and every other EVM chain, then deploy the same address on each of them from your own wallet.">
+</head>
+<body>
+	<a href="#main-content" class="skip-link">Skip to main content</a>
+	<canvas id="bg" aria-hidden="true"></canvas>
+	<header class="site-nav">
+		<a class="brand" href="/"><span class="brand-mark"></span> create2-vanity</a>
+		<nav>
+			<a href="/">Grinder</a>
+			<a href="/deploy.html" aria-current="page">Deploy</a>
+			<a href="/verify.html">Verify</a>
+			<a href="/docs.html">Docs</a>
+			<a href="https://github.com/nirholas/create2-vanity" rel="noopener">GitHub</a>
+		</nav>
+	</header>
+
+	<main id="main-content">
+		<h1>✦ Deploy everywhere</h1>
+		<p class="lede">
+			A CREATE2 address is the same on every chain that has your deployer. Before you send anything, this checks whether it is
+			<strong>still free</strong> on each of them, because somebody else's deployment can already occupy your address on one chain
+			while it is untouched on the rest, and finding that out after the fact is expensive.
+		</p>
+
+		<div class="card">
+			<h2>1. The deployment</h2>
+			<div class="row2">
+				<div>
+					<label for="deployer">Deployer</label>
+					<input id="deployer" type="text" placeholder="0x4e59…4956C" autocomplete="off" spellcheck="false" />
+				</div>
+				<div>
+					<label for="salt">Salt (32 bytes)</label>
+					<input id="salt" type="text" placeholder="0x…" autocomplete="off" spellcheck="false" />
+				</div>
+			</div>
+			<label for="initcode">Init code (deploy bytecode with constructor arguments appended)</label>
+			<textarea id="initcode" rows="3" placeholder="0x…"></textarea>
+			<div class="row"><span id="derived">enter a deployer, a salt and init code</span></div>
+			<div class="actions">
+				<button id="check" class="btn primary" type="button" disabled>Check every chain</button>
+				<span id="check-status" style="font-size:.8rem;color:var(--muted)"></span>
+			</div>
+			<div id="chain-table" style="margin-top:1rem"></div>
+		</div>
+
+		<div class="card">
+			<h2>2. Deploy</h2>
+			<p class="desc">
+				The Arachnid proxy takes <code>salt ‖ initCode</code> as raw calldata with no function selector, so any wallet can send it.
+				Connect, pick a chain, and this builds the transaction. Nothing is signed without your explicit confirmation in the wallet.
+			</p>
+			<div class="actions">
+				<button id="connect" class="btn" type="button">Connect a wallet</button>
+				<span id="account" style="font-size:.8rem;color:var(--muted);font-family:ui-monospace,monospace"></span>
+			</div>
+			<div id="deploy-host" style="margin-top:.9rem"></div>
+			<div id="deploy-error" hidden class="error"></div>
+		</div>
+
+		<div class="section-divider">
+			<h2>Or send it yourself</h2>
+			<div class="card">
+				<p class="desc" style="margin:0 0 .6rem">
+					Nothing here needs this page. The transaction is fully described by two fields, and any wallet, script or multisig can send it.
+				</p>
+				<div class="kv"><span class="k">to</span><span class="v mono" id="tx-to">the deployer address</span></div>
+				<div class="kv"><span class="k">data</span><span class="v mono" id="tx-data" style="font-size:.66rem">salt ‖ initCode</span></div>
+				<div class="kv"><span class="k">value</span><span class="v">0</span></div>
+			</div>
+		</div>
+	</main>
+
+	<footer class="site-foot">
+		<span>Apache-2.0 · <a href="https://github.com/nirholas/create2-vanity" rel="noopener">source</a> · <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/.well-known/agents.json">agent card</a></span>
+		<span>No private keys are involved anywhere in this tool. A CREATE2 address is a pure function of a deployer, a salt and init code.</span>
+	</footer>
+
+	<script type="module" src="/src/ui/scene.js"></script>
+	<script type="module" src="/src/ui/deploy.js"></script>
+</body>
+</html>

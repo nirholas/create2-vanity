@@ -1,0 +1,14 @@
+name = "create2-vanity"
+main = "worker/index.js"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "dist"
+binding = "ASSETS"
+
+# Attestations are signed with this key. Set it once with:
+#   npx wrangler secret put ATTESTATION_KEY
+# Leave it unset and the Worker mints an ephemeral key per isolate. That costs
+# nothing but the signature: the derivation check in every attestation works
+# regardless, because it needs no issuer.

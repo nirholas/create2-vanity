@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Documentation for create2-vanity</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="How CREATE2 addresses are derived, why init code must include constructor arguments, how difficulty works, why a portable address is not an available one, and how to run the whole tool yourself.">
+	<link rel="icon" href="/favicon.svg">
+	<link rel="stylesheet" href="/src/ui/site.css">
+	<link rel="canonical" href="https://create2-vanity.dev/docs.html">
+	<meta property="og:type" content="website">
+	<meta property="og:title" content="Documentation for create2-vanity">
+	<meta property="og:description" content="The derivation, init code, difficulty, cross-chain availability, attestations, the API, the CLI, the MCP server and self-hosting.">
+</head>
+<body>
+	<a href="#main-content" class="skip-link">Skip to main content</a>
+	<canvas id="bg" aria-hidden="true"></canvas>
+	<header class="site-nav">
+		<a class="brand" href="/"><span class="brand-mark"></span> create2-vanity</a>
+		<nav>
+			<a href="/">Grinder</a>
+			<a href="/deploy.html">Deploy</a>
+			<a href="/verify.html">Verify</a>
+			<a href="/docs.html" aria-current="page">Docs</a>
+			<a href="https://github.com/nirholas/create2-vanity" rel="noopener">GitHub</a>
+		</nav>
+	</header>
+
+	<main id="main-content" class="docs">
+		<h1>✦ Documentation</h1>
+		<p class="lede">
+			What a CREATE2 address is, why grinding one is a different risk model from grinding a wallet, and how to run all of this
+			yourself. Every command below runs against the code in this repository.
+		</p>
+
+		<nav class="toc" aria-label="Contents">
+			<a href="#quickstart">Quick start</a>
+			<a href="#derivation">The derivation</a>
+			<a href="#initcode">Init code, and the mistake everyone makes</a>
+			<a href="#difficulty">Difficulty</a>
+			<a href="#availability">Portability is not availability</a>
+			<a href="#attestations">Attestations</a>
+			<a href="#api">HTTP API</a>
+			<a href="#cli">CLI</a>
+			<a href="#mcp">MCP server</a>
+			<a href="#selfhost">Self-hosting</a>
+		</nav>
+
+		<section id="quickstart" class="doc">
+			<h2>Quick start</h2>
+			<p>Grind in the browser at <a href="/">the grinder</a>. Nothing is installed and nothing is transmitted.</p>
+			<pre><code>git clone https://github.com/nirholas/create2-vanity
+cd create2-vanity
+npm install
+npm run dev          # site on :5182, API on :8789</code></pre>
+			<p>Or from the command line:</p>
+			<pre><code>npx create2-vanity hash --artifact out/Token.sol/Token.json
+npx create2-vanity grind --init-code-hash 0x30f9… --prefix beef
+npx create2-vanity available 0x00000000D49195AE81759cd247cFeDD9D0B479df</code></pre>
+		</section>
+
+		<section id="derivation" class="doc">
+			<h2>The derivation</h2>
+			<p>EIP-1014 defines a contract address deployed with CREATE2 as</p>
+			<pre><code>address = keccak256(0xff ‖ deployer ‖ salt ‖ keccak256(initCode))[12:]</code></pre>
+			<p>
+				Four public inputs, one hash, twenty bytes out. <strong>No private key appears anywhere in that expression</strong>, and
+				that single fact changes everything about this tool compared with a wallet grinder:
+			</p>
+			<ul>
+				<li>a hostile grinder's worst case is handing you a salt that does not work, which one keccak disproves;</li>
+				<li>the work can be delegated to anyone, on any machine, with nothing to protect;</li>
+				<li>server-side grinding is enabled by default here, because refusing to do it would be theatre;</li>
+				<li>an attestation about the address is checkable rather than merely signed.</li>
+			</ul>
+			<p>
+				The sibling question, "which address will my next ordinary deploy land on", is
+				<code>keccak256(rlp([sender, nonce]))[12:]</code>, and <code>create2-vanity derive --sender … --nonce …</code> answers it.
+			</p>
+		</section>
+
+		<section id="initcode" class="doc">
+			<h2>Init code, and the mistake everyone makes</h2>
+			<p>
+				<strong>Init code is the deploy bytecode with the ABI-encoded constructor arguments appended.</strong> Hashing the
+				bytecode alone is the single most common reason a predicted address turns out to be wrong, and it is discovered after the
+				grind, after the deployment, and after the money.
+			</p>
+			<p>
+				Load a Foundry or Hardhat artifact on the grinder page and it reads the bytecode out of it, then reads the ABI and tells
+				you, in red, how many constructor arguments the contract declares and of what types. The same check runs in the CLI:
+			</p>
+			<pre><code>$ create2-vanity hash --artifact out/Token.sol/Token.json
+✦ 0x9c2f…
+  Token, 4210 bytes of deploy code
+
+  This contract takes 2 constructor arguments:
+    address owner
+    uint256 cap
+  The hash above covers the deploy code alone. Append the ABI-encoded arguments
+  before grinding, or the address you find is not the address you deploy to.</code></pre>
+			<p>Encode the arguments with whatever produced the artifact (<code>cast abi-encode</code>, ethers, viem) and concatenate.</p>
+		</section>
+
+		<section id="difficulty" class="doc">
+			<h2>Difficulty</h2>
+			<p>
+				An address is 40 uniform hex nibbles, so an <em>n</em>-character pattern costs 16<sup>n</sup> expected salts, at either
+				end. <code>0x0000…</code> costs exactly what <code>0xdead…</code> costs, and a suffix costs what a prefix costs.
+			</p>
+			<p>
+				<strong>EIP-55 casing is the exception.</strong> A specific case spelling costs an extra factor of two per letter, so
+				<code>Beef</code> is sixteen times harder than any-case <code>beef</code>. Every quote reports the multiplier.
+			</p>
+			<p>
+				Grinding is geometric, so the expected value is not a deadline: at the expected count you have had a 63.2% chance of
+				finishing. Quotes report p50, p90 and p99.
+			</p>
+			<p>
+				One keccak over 85 bytes is cheap, so this grinder is fast: hundreds of thousands of salts per second per core, an order
+				of magnitude beyond a wallet grinder, which pays for an elliptic-curve operation per candidate.
+			</p>
+		</section>
+
+		<section id="availability" class="doc">
+			<h2>Portability is not availability</h2>
+			<p>
+				The same deployer, init code and salt give the same address on every chain where that deployer exists. That is the reason
+				to use CREATE2 at all, and it comes with a failure mode nobody warns about: <strong>the address can already be occupied on
+				one chain while it is free on the rest.</strong>
+			</p>
+			<p>
+				Somebody else's deployment, an earlier deployment of your own, or a squatter can hold it. Deploying into an occupied
+				address fails and costs the fee. The <a href="/deploy.html">deploy page</a> checks every chain first, then re-checks the
+				chain you picked immediately before sending, because a table can be minutes old by the time anyone clicks.
+			</p>
+			<pre><code>$ create2-vanity available 0x00000000D49195AE81759cd247cFeDD9D0B479df
+  Ethereum                   free
+  Base                       occupied
+  Arbitrum One               occupied
+  Robinhood Chain            free
+  …</code></pre>
+			<p>
+				All four common deterministic deployers (the Arachnid proxy, CreateX, Safe v1.4.1 and the Coinbase Smart Wallet factory)
+				are live on Ethereum, Base, Arbitrum, Robinhood Chain, OP, Polygon, BNB and Avalanche. Each row was confirmed with
+				<code>eth_getCode</code>, and <code>npm test</code> re-confirms it.
+			</p>
+		</section>
+
+		<section id="attestations" class="doc">
+			<h2>Attestations</h2>
+			<p>
+				An attestation records who ground a salt, when, and how many attempts it took, signed as EIP-712 typed data so a contract
+				can recover the signer with <code>ecrecover</code>.
+			</p>
+			<p>
+				It is an unusually honest document, because its central claim is not a claim: the verifier re-derives the address from the
+				attested deployer, salt and init-code hash. A lie fails in one keccak, with or without the signature. The signature adds
+				provenance, never authority, which is why losing the issuer key would cost this service its identity and cost users
+				nothing.
+			</p>
+			<pre><code>import { verifyAttestation } from 'create2-vanity/attestation';
+
+const issuers = (await (await fetch(BASE + '/.well-known/create2-vanity.json')).json()).issuers.map(i =&gt; i.address);
+const result  = verifyAttestation(attestation, { issuers });
+
+result.checks.find(c =&gt; c.id === 'derivation').pass;   // needs no issuer at all</code></pre>
+			<p>The type hash and domain separator are served at <a href="/.well-known/create2-vanity.json">/.well-known/create2-vanity.json</a>
+			so a deployed Solidity verifier and this library cannot drift apart. The domain carries no <code>chainId</code>, because the
+			address is the same everywhere.</p>
+		</section>
+
+		<section id="api" class="doc">
+			<h2>HTTP API</h2>
+			<p>Machine-readable schema: <a href="/openapi.json">/openapi.json</a>. Agent card: <a href="/.well-known/agents.json">/.well-known/agents.json</a>.</p>
+			<table class="api">
+				<thead><tr><th>Endpoint</th><th>What it does</th></tr></thead>
+				<tbody>
+					<tr><td><code>POST /api/derive</code></td><td>CREATE2 from a deployer, salt and init code; CREATE from a sender and nonce.</td></tr>
+					<tr><td><code>POST /api/quote</code></td><td>Expected salts, p50/p90/p99, rarity and the EIP-55 case multiplier.</td></tr>
+					<tr><td><code>POST /api/grind</code></td><td>Search salts server-side. Enabled by default: there is nothing to leak.</td></tr>
+					<tr><td><code>POST /api/availability</code></td><td>Is the address still free, chain by chain.</td></tr>
+					<tr><td><code>POST /api/attest</code></td><td>Sign an EIP-712 grind attestation.</td></tr>
+					<tr><td><code>POST /api/verify</code></td><td>Verify one, derivation check included.</td></tr>
+					<tr><td><code>GET /api/chains</code></td><td>The chain and deployer registry.</td></tr>
+					<tr><td><code>GET /api/salt</code></td><td>A random 32-byte salt.</td></tr>
+				</tbody>
+			</table>
+			<pre><code>curl -s https://create2-vanity.dev/api/derive \
+  -H 'content-type: application/json' \
+  -d '{"deployer":"0x4e59b44847b379578588920ca78fbf26c0b4956c",
+       "salt":"0xfc1ecd1953bb17cf798c1eaeed287873008f3a3038f438e9e74c3b33ce370ef5",
+       "initCodeHash":"0x30f9d9020bf9622bbe7f8a1625d447efe350dfafd0a91e6dbd62d56547db835f"}'</code></pre>
+		</section>
+
+		<section id="cli" class="doc">
+			<h2>CLI</h2>
+			<pre><code>npx create2-vanity hash --artifact out/Token.sol/Token.json
+npx create2-vanity grind --init-code-hash 0x30f9… --prefix beef --out found.json
+npx create2-vanity derive --deployer 0x4e59… --salt 0xfc1e… --init-code-hash 0x30f9…
+npx create2-vanity derive --sender 0x6ac7… --nonce 3
+npx create2-vanity quote --prefix Beef --rate 700000
+npx create2-vanity available 0xBEEF… --deployer 0x4e59…
+npx create2-vanity verify attestation.json
+npx create2-vanity chains</code></pre>
+			<p>Add <code>--json</code> to anything for machine-readable output. <code>available</code> exits non-zero when the address is occupied somewhere, so it drops into CI.</p>
+		</section>
+
+		<section id="mcp" class="doc">
+			<h2>MCP server</h2>
+			<pre><code>{
+  "mcpServers": {
+    "create2-vanity": { "command": "npx", "args": ["-y", "create2-vanity", "mcp"] }
+  }
+}</code></pre>
+			<table class="api">
+				<tbody>
+					<tr><td><code>create2_derive</code></td><td>CREATE2 or CREATE address derivation.</td></tr>
+					<tr><td><code>create2_quote</code></td><td>Difficulty and rarity for a pattern.</td></tr>
+					<tr><td><code>create2_grind</code></td><td>Grind a salt across every core.</td></tr>
+					<tr><td><code>create2_availability</code></td><td>Is the address free, chain by chain.</td></tr>
+					<tr><td><code>create2_verify_attestation</code></td><td>Verify an attestation offline.</td></tr>
+					<tr><td><code>create2_chains</code></td><td>Chains and their deployers.</td></tr>
+				</tbody>
+			</table>
+			<p>No key material passes through any of them, which is what makes this safe to let an assistant drive unsupervised.</p>
+		</section>
+
+		<section id="selfhost" class="doc">
+			<h2>Self-hosting</h2>
+			<pre><code>npm run build
+ATTESTATION_KEY=$(node server/keygen.mjs | head -1 | cut -d= -f2) npm start</code></pre>
+			<pre><code>npm run build
+npx wrangler secret put ATTESTATION_KEY
+npx wrangler deploy</code></pre>
+			<table class="api">
+				<thead><tr><th>Variable</th><th>Meaning</th></tr></thead>
+				<tbody>
+					<tr><td><code>ATTESTATION_KEY</code></td><td>32-byte secp256k1 key (hex) for signing attestations. Unset means an ephemeral per-process key, reported in every response. It is a signing identity, not a wallet: do not fund it.</td></tr>
+					<tr><td><code>PORT</code></td><td>Node listen port. Default 8789.</td></tr>
+				</tbody>
+			</table>
+			<p>Every endpoint behaves identically on Node and on Cloudflare Workers: the grinder is pure keccak with no filesystem or WebAssembly dependency.</p>
+		</section>
+	</main>
+
+	<footer class="site-foot">
+		<span>Apache-2.0 · <a href="https://github.com/nirholas/create2-vanity" rel="noopener">source</a> · <a href="/llms.txt">llms.txt</a> · <a href="/openapi.json">OpenAPI</a> · <a href="/.well-known/agents.json">agent card</a></span>
+		<span>No private keys are involved anywhere in this tool. A CREATE2 address is a pure function of a deployer, a salt and init code.</span>
+	</footer>
+
+	<script type="module" src="/src/ui/scene.js"></script>
+</body>
+</html>

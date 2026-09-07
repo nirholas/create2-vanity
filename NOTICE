@@ -1,0 +1,32 @@
+create2-vanity
+Copyright 2026 nirholas
+
+The open CREATE2 vanity address foundry.
+https://github.com/nirholas/create2-vanity
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file for the
+full terms.
+
+Portions of this project were first developed inside the three.ws monorepo
+(https://github.com/nirholas/three.ws) and are re-licensed here under the same
+Apache License, Version 2.0:
+
+  src/grinder.js               the browser grinder's main-thread API
+  src/grinder-worker.js        the CREATE2 keccak hot loop
+  src/validation.js            pattern, address and init-code-hash validation
+  src/wordlist.js              pronounceable hex words and leet conversion
+  src/ui/site.css              the CREATE2 grinder page stylesheet
+
+Everything else is new in this repository: the derivation and artifact modules,
+the cross-chain availability checks, the deployment flow, the EIP-712
+attestation format, the Node grinders, the HTTP API, the CLI and the MCP server.
+
+Third-party dependencies keep their own licenses:
+
+  @noble/curves, @noble/hashes    MIT, Paul Miller
+  ethers                          MIT, Richard Moore
+  three                           MIT, three.js authors
+  zod                             MIT, Colin McDonnell
+  @modelcontextprotocol/sdk       MIT, Anthropic
+
+Nothing in this NOTICE modifies the terms of the Apache License, Version 2.0.
