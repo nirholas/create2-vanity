@@ -7,7 +7,11 @@ browser, then check it is actually free on every chain before you deploy.**
 [![Tests](https://img.shields.io/badge/tests-43%20passing-brightgreen.svg)](./tests)
 [![No keys](https://img.shields.io/badge/keys-none%20involved-34d399.svg)](#there-is-no-key-here)
 
-**Live demo:** [create2-vanity.gold-cornucopia.workers.dev](https://create2-vanity.gold-cornucopia.workers.dev) runs this exact code (site, API and discovery documents) on Cloudflare Workers. It is a credential-free preview deployment and the subdomain is disposable; `npx wrangler deploy` puts it on a durable one.
+**Try it without installing anything:** `npx wrangler deploy --temporary` puts this
+whole thing (site, API and discovery documents) on a Cloudflare Workers URL in
+about thirty seconds and needs no account, no token and no configuration. That
+preview is disposable and gets a fresh subdomain every time; `npx wrangler deploy`
+with a Workers-scoped token puts it somewhere permanent.
 
 ```bash
 npx create2-vanity grind --init-code-hash 0x30f9… --prefix beef

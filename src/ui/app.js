@@ -18,9 +18,23 @@ import { difficulty, rarity, formatAttempts, normalizePattern } from '../difficu
 import { initCodeHash, readArtifact, constructorInputs, describeDeployment } from '../create2.js';
 import { FACTORY_LABELS, ARACHNID_PROXY, CREATEX, SAFE_FACTORY, COINBASE_SW } from '../chains.js';
 import { setGrindActivity } from './activity.js';
+import { mountHero } from './hero.js';
 
 const $ = (id) => document.getElementById(id);
 const HEX_ALPHA = '0123456789abcdef';
+
+/**
+ * The hero strip: a candidate address, one quad per character, driven by the
+ * same pattern and rate as the read-outs beside it. The cells the pattern covers
+ * hold the characters that were asked for; the rest churn at the measured attempt
+ * rate and lock to the real address when one is found.
+ */
+const heroStrip = mountHero(document.getElementById('hero'), {
+	alphabet: HEX_ALPHA,
+	length: 40,
+	accent: '#34d399',
+	accentAlt: '#2dd4bf',
+});
 
 /** Measured order of magnitude for one keccak over 85 bytes in a worker. */
 const RATE_PER_CORE = 60_000;
@@ -233,6 +247,7 @@ function update() {
 		: '';
 
 	if (!p.length) {
+		heroStrip.setPattern('', '');
 		$('preview').innerHTML = `<span class="rest">0x</span><span class="rest">${esc(sample())}</span>`;
 		$('est').textContent = 'type a pattern to see estimated time';
 		$('tier').innerHTML = '';
@@ -254,6 +269,7 @@ function update() {
 		`<span class="rest">${esc(mid)}</span>` +
 		(suffix ? `<span class="sfx">${esc(suffix)}</span>` : '');
 
+	heroStrip.setPattern(prefix, suffix);
 	const d = difficulty({ prefix, suffix });
 	const r = rarity({ prefix, suffix });
 	$('est').textContent = `${formatAttempts(d.p50)} salts for an even chance · ${fmtTime(seconds)} on ${cores} cores`;
@@ -295,6 +311,7 @@ function endGrindUI() {
 	coreSlider.disabled = false;
 	$('core-ticks').querySelectorAll('button').forEach((b) => { b.disabled = false; });
 	setGrindActivity(0);
+	heroStrip.setActivity(0);
 }
 
 function showError(message) {
@@ -338,6 +355,8 @@ $('grind').addEventListener('click', async () => {
 
 	abort = new AbortController();
 	controls = {};
+	heroStrip.reset();
+	heroStrip.setPattern(prefix, suffix);
 	try {
 		const result = await grindCreate2Vanity({
 			deployer: deployer.normalized,
@@ -351,7 +370,9 @@ $('grind').addEventListener('click', async () => {
 				$('attempts').textContent = attempts.toLocaleString();
 				$('rate').textContent = paused ? 'paused' : `${Math.round(rate).toLocaleString()}/s`;
 				$('eta').textContent = eta;
-				setGrindActivity(paused ? 0 : Math.min(1, rate / (RATE_PER_CORE * cores)));
+				const load = paused ? 0 : Math.min(1, rate / (RATE_PER_CORE * cores));
+				setGrindActivity(load);
+				heroStrip.setActivity(load);
 			},
 		});
 		renderResult(result, { prefix, suffix }, deployer.normalized, hash.normalized);
@@ -395,6 +416,9 @@ function renderResult(result, pattern, deployer, hash) {
 	const mid = body.slice(pattern.prefix.length, body.length - pattern.suffix.length);
 	const rate = Math.round(result.attempts / (result.durationMs / 1000));
 	const r = rarity(pattern);
+	// The strip stops being a simulation the moment there is an answer.
+	heroStrip.lock(deployment.addressChecksum);
+	$('hero-caption').textContent = `${deployment.addressChecksum.slice(0, 8)}…${deployment.addressChecksum.slice(-4)} · found in ${result.attempts.toLocaleString()} salts`;
 
 	const deployHref = `/deploy.html#${new URLSearchParams({
 		deployer,
