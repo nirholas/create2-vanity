@@ -123,6 +123,25 @@ npm test               # 43 tests
 
 Production, Cloudflare Workers, Docker and Cloud Run: [docs/deploy.md](docs/deploy.md).
 
+Install the CLI and library from npm:
+
+```bash
+npm install create2-vanity
+```
+
+```js
+import { create2Address, randomSalt, attestation, chains } from 'create2-vanity';
+
+const salt = randomSalt();
+const address = create2Address(deployer, salt, initCodeHash);
+const chain = chains.getChain(1);
+const verified = attestation.verifyAttestation(certificate);
+```
+
+The package root exports the CREATE2 helpers directly. Address inspection,
+attestation, chain, difficulty and validation helpers are available as
+namespaces; the existing documented subpath imports remain supported.
+
 ---
 
 ## Chains
