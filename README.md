@@ -266,3 +266,7 @@ grinders, the API, the CLI and the MCP server are new in this repository.
 ## Licence
 
 [Apache-2.0](./LICENSE). See [NOTICE](./NOTICE) for attribution.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nirholas/create2-vanity&type=Date)](https://www.star-history.com/#nirholas/create2-vanity&Date)
