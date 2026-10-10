@@ -38,7 +38,7 @@
     "deploy:pages": "npm run build && npx wrangler pages deploy dist --project-name create2-vanity"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "@noble/curves": "^2.2.0",
     "@noble/hashes": "^1.8.0",
     "ethers": "^6.13.0",
