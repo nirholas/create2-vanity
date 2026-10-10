@@ -1,5 +1,9 @@
 # create2-vanity
 
+> Model deterministic EVM CREATE2 addresses and salt search difficulty.
+
+# create2-vanity
+
 **Grind a deterministic contract address by searching CREATE2 salts, in your
 browser, then check it is actually free on every chain before you deploy.**
 
@@ -270,26 +274,3 @@ grinders, the API, the CLI and the MCP server are new in this repository.
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nirholas/create2-vanity&type=Date)](https://www.star-history.com/#nirholas/create2-vanity&Date)
-
-<!-- three.ws:growth -->
-## Support the project
-
-If create2-vanity saves you time, **[star it on GitHub](https://github.com/nirholas/create2-vanity)**. Stars are how other developers and AI agents find the repositories worth trusting, and they cost you one click.
-
-Know someone who would use it? [Post on X](https://twitter.com/intent/tweet?text=create2-vanity%3A%20Model%20deterministic%20EVM%20CREATE2%20addresses%20and%20salt%20search%20difficulty&url=https%3A%2F%2Fgithub.com%2Fnirholas%2Fcreate2-vanity) · [Share on Bluesky](https://bsky.app/intent/compose?text=create2-vanity%3A%20Model%20deterministic%20EVM%20CREATE2%20addresses%20and%20salt%20search%20difficulty%20https%3A%2F%2Fgithub.com%2Fnirholas%2Fcreate2-vanity) · [Share on LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fgithub.com%2Fnirholas%2Fcreate2-vanity) · [Submit to Hacker News](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fgithub.com%2Fnirholas%2Fcreate2-vanity&t=create2-vanity%3A%20Model%20deterministic%20EVM%20CREATE2%20addresses%20and%20salt%20search%20difficulty) · [Share on Reddit](https://www.reddit.com/submit?url=https%3A%2F%2Fgithub.com%2Fnirholas%2Fcreate2-vanity&title=create2-vanity%3A%20Model%20deterministic%20EVM%20CREATE2%20addresses%20and%20salt%20search%20difficulty)
-
-## Built for AI agents too
-
-Coding agents and LLM tooling can read this repo directly: [AGENTS.md](./AGENTS.md), [llms.txt](./llms.txt), [llms-full.txt](./llms-full.txt). Point an agent at `https://github.com/nirholas/create2-vanity` and it has the context it needs.
-
-## More from the same author
-
-- [All repositories by nirholas](https://github.com/nirholas/nirholas#readme): the full catalog, grouped by topic
-- [three.ws](https://three.ws): the platform for 3D AI agents with Solana wallets, a skill marketplace and x402 payments
-- Questions or ideas: [open an issue](https://github.com/nirholas/create2-vanity/issues) or [start a discussion](https://github.com/nirholas/create2-vanity/discussions)
-
-## Contributors
-
-[![Contributors](https://contrib.rocks/image?repo=nirholas/create2-vanity)](https://github.com/nirholas/create2-vanity/graphs/contributors)
-
-<!-- /three.ws:growth -->

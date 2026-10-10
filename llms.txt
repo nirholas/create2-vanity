@@ -1,0 +1,28 @@
+# create2-vanity
+
+> Model deterministic EVM CREATE2 addresses and salt search difficulty.
+
+create2-vanity is an open-source repository by nirholas, part of the three.ws ecosystem.
+
+## Docs
+
+- [README](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md): install, usage and reference
+- [There is no key here](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#there-is-no-key-here)
+- [Three things this does that other CREATE2 tools do not](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#three-things-this-does-that-other-create2-tools-do-not)
+- [Install and run](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#install-and-run)
+- [Chains](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#chains)
+- [The pieces](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#the-pieces)
+- [CLI](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#cli)
+- [MCP](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#mcp)
+- [HTTP API](https://github.com/nirholas/create2-vanity/blob/HEAD/README.md#http-api)
+- [AGENTS.md](https://github.com/nirholas/create2-vanity/blob/HEAD/AGENTS.md): guidance for coding agents
+- [Full text for LLMs](https://github.com/nirholas/create2-vanity/blob/HEAD/llms-full.txt): the README inlined
+
+## Project
+
+- [Source](https://github.com/nirholas/create2-vanity)
+- [Issues](https://github.com/nirholas/create2-vanity/issues)
+- [Discussions](https://github.com/nirholas/create2-vanity/discussions)
+- [Homepage](https://create2-vanity.gold-cornucopia.workers.dev)
+- [three.ws](https://three.ws): the platform this is part of
+- [All repositories by nirholas](https://github.com/nirholas/nirholas#readme)
