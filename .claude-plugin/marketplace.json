@@ -1,0 +1,22 @@
+{
+  "name": "create2-vanity",
+  "owner": {
+    "name": "nirholas"
+  },
+  "description": "Derive, grind and check CREATE2 vanity addresses across EVM chains with no private keys, via CLI and MCP.",
+  "plugins": [
+    {
+      "name": "create2-vanity",
+      "source": "./plugins/create2-vanity",
+      "description": "Derive, grind and check CREATE2 vanity addresses across EVM chains with no private keys, via CLI and MCP.",
+      "category": "development",
+      "tags": [
+        "create2",
+        "vanity-address",
+        "evm",
+        "mcp",
+        "deterministic-deployment"
+      ]
+    }
+  ]
+}
